@@ -1,36 +1,193 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LemonPeel - Modern Next.js Application
 
-## Getting Started
+A modern, full-stack Next.js 16 application built with TypeScript, Tailwind CSS, and a well-organized folder structure for scalable development.
 
-First, run the development server:
+## 🚀 Features
 
+- **Next.js 16** with App Router
+- **React 19** with Server Components
+- **TypeScript** for type safety
+- **Tailwind CSS 4** for styling
+- **ESLint** for code linting
+- **Jest** for testing
+- **Modular Architecture** with organized folder structure
+
+## 📁 Project Structure
+
+```
+lemonpeel/
+│
+├── 📄 package.json               # Project dependencies and scripts
+├── 📄 next.config.ts             # Next.js configuration
+├── 📄 postcss.config.mjs         # PostCSS (used by Tailwind)
+├── 📄 tailwind.config.js         # Tailwind configuration
+├── 📄 tsconfig.json              # TypeScript configuration
+├── 📄 .eslintrc.json             # Linting rules
+├── 📄 jest.config.js             # Jest testing configuration
+├── 📄 jest.setup.js              # Jest setup file
+├── 📄 .gitignore                 # Git ignore file
+├── 📁 public/                    # Static assets
+│   ├── favicon.ico
+│   ├── *.svg files
+│   └── logo.png.placeholder
+│
+├── 📁 styles/                    # Global styles
+│   ├── globals.css               # Tailwind imports + global styles
+│   └── home.module.css           # CSS modules example
+│
+├── 📁 app/                       # Next.js App Router
+│   ├── layout.tsx                # Root layout
+│   ├── page.tsx                  # Home page
+│   ├── globals.css               # Global styles
+│   └── about/
+│       └── page.js               # About page
+│
+├── 📁 components/                # Reusable UI components
+│   ├── Navbar.jsx
+│   ├── Footer.jsx
+│   └── Button.jsx
+│
+├── 📁 features/                  # Feature modules
+│   ├── auth/
+│   │   ├── LoginForm.jsx
+│   │   ├── SignupForm.jsx
+│   │   └── index.js
+│   └── dashboard/
+│       ├── DashboardPage.jsx
+│       └── index.js
+│
+├── 📁 lib/                       # Helper utilities
+│   ├── api.js                    # API client
+│   ├── constants.js              # App constants
+│   └── helpers.js                # Utility functions
+│
+├── 📁 hooks/                     # Custom React hooks
+│   ├── useAuth.js
+│   └── useFetch.js
+│
+├── 📁 context/                   # Context API files
+│   ├── ThemeContext.js
+│   └── UserContext.js
+│
+├── 📁 types/                     # TypeScript type definitions
+│   ├── user.ts
+│   ├── api.ts
+│   └── index.ts
+│
+└── 📁 tests/                     # Test files
+    ├── components/
+    │   └── Button.test.jsx
+    └── utils/
+        └── helpers.test.js
+```
+
+## 🛠️ Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm, yarn, or pnpm
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd lemonpeel
+```
+
+2. Install dependencies
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+3. Run the development server
 ```bash
 npm run dev
 # or
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📝 Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint errors
+- `npm run test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage
 
-## Learn More
+## 🧪 Testing
 
-To learn more about Next.js, take a look at the following resources:
+The project includes Jest and React Testing Library for testing:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Run all tests
+npm run test
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Run tests in watch mode
+npm run test:watch
 
-## Deploy on Vercel
+# Run tests with coverage
+npm run test:coverage
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🎨 Styling
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project uses Tailwind CSS for styling with:
+- Dark mode support
+- Responsive design
+- Custom components
+- CSS modules for specific components
+
+## 🏗️ Architecture
+
+### Components
+Reusable UI components stored in `/components`
+
+### Features 
+Feature-based modules in `/features` for better organization
+
+### Hooks
+Custom React hooks in `/hooks` for shared logic
+
+### Context
+React Context providers in `/context` for global state
+
+### Types
+TypeScript type definitions in `/types`
+
+### Tests
+Test files organized by component/utility in `/tests`
+
+## 🚀 Deployment
+
+The easiest way to deploy is using [Vercel](https://vercel.com/new):
+
+```bash
+npm run build
+```
+
+Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
