@@ -2,22 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authApi } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
-export default function LoginForm({ defaultView = 'login' }) {
+export default function LoginForm() {
   const router = useRouter();
-  const [isSignUp, setIsSignUp] = useState(defaultView === 'signup');
+  const { login } = useAuth(); // Get login function from useAuth
   const [formData, setFormData] = useState({
     email: '',
     password: ''
-  });
-  const [signUpData, setSignUpData] = useState({
-    firstname: '',
-    lastname: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    organisationName: ''
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,10 +19,6 @@ export default function LoginForm({ defaultView = 'login' }) {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    setIsSignUp(defaultView === 'signup');
-  }, [defaultView]);
 
   const handleChange = (e) => {
     setFormData({
@@ -43,102 +31,34 @@ export default function LoginForm({ defaultView = 'login' }) {
     }
   };
 
-  const handleSignUpChange = (e) => {
-    setSignUpData({
-      ...signUpData,
-      [e.target.name]: e.target.value
-    });
-    // Clear error when user starts typing
-    if (error) {
-      setError('');
-    }
-  };
-
-  // Generate random auth token
-  const generateAuthToken = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let token = '';
-    for (let i = 0; i < 32; i++) {
-      token += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return token;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {
-      // Call the login API using the configured base URL
-      const data = await authApi.login({
+      // Call the login function from AuthContext
+      const data = await login({
         email: formData.email,
         password: formData.password,
         rememberMe: rememberMe
       });
 
-      // Success - store auth token if provided, or generate one
-      const authToken = data.token || generateAuthToken();
-      localStorage.setItem('auth_token', authToken);
-      localStorage.setItem('user_data', JSON.stringify(data.user || { email: formData.email }));
-
       console.log('Login successful:', data);
-      console.log('Auth token stored:', authToken);
 
       if (isMounted) {
-        router.push('/projects');
+        const callbackUrl = localStorage.getItem('callbackUrl');
+        if (callbackUrl) {
+          localStorage.removeItem('callbackUrl');
+          router.push(callbackUrl);
+        } else {
+          router.push('/projects');
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
       // Extract error message from the error object
       const errorMessage = error.message || 'Login failed. Please try again.';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSignUpSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    // Validate passwords match
-    if (signUpData.password !== signUpData.confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-
-    // Validate all fields are filled
-    if (!signUpData.firstname || !signUpData.lastname || !signUpData.email ||
-      !signUpData.password || !signUpData.confirmPassword || !signUpData.organisationName) {
-      setError('Please fill in all fields');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      // Call the signup API using the configured base URL
-      const data = await authApi.signup(signUpData);
-
-      // Success - redirect to login page
-      console.log('Sign up successful:', data);
-      setError('');
-      setSignUpData({
-        firstname: '',
-        lastname: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        organisationName: ''
-      });
-      // Redirect to login without alert
-      router.push('/login');
-    } catch (error) {
-      console.error('Sign up error:', error);
-      // Extract error message from the error object
-      const errorMessage = error.message || 'Sign up failed. Please try again.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -302,7 +222,7 @@ export default function LoginForm({ defaultView = 'login' }) {
         </div>
       </div>
 
-      {/* Right Side - Login/Sign Up Form */}
+      {/* Right Side - Login Form */}
       <div
         className="relative flex-1 h-full flex items-center justify-center overflow-y-auto"
         style={{
@@ -324,7 +244,7 @@ export default function LoginForm({ defaultView = 'login' }) {
               position: 'relative'
             }}
           >
-            {isSignUp ? 'Sign up' : 'Log in'}
+            Log in
           </div>
 
           {/* Error Message */}
@@ -345,251 +265,26 @@ export default function LoginForm({ defaultView = 'login' }) {
           )}
 
           {/* Login Form */}
-          {!isSignUp && (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email Input */}
-              <div className="space-y-2">
-                <label
-                  className="block text-white text-xs tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display',
-                    fontWeight: '400'
-                  }}
-                >
-                  Login
-                </label>
-
-                <div className="relative">
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Email or phone number"
-                    className="w-full h-12 px-4 bg-[#181C1F] border border-[rgba(229,229,229,0.1)] rounded-md text-[#808080] text-sm focus:outline-none focus:ring-1 focus:ring-[#FAD406]"
-                    style={{
-                      fontFamily: 'Roboto'
-                    }}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Password Input */}
-              <div className="space-y-2">
-                <label
-                  className="block text-white text-xs tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display',
-                    fontWeight: '400'
-                  }}
-                >
-                  Password
-                </label>
-
-                <div className="relative">
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Enter password"
-                    className="w-full h-12 px-4 bg-[#181C1F] border border-[rgba(229,229,229,0.1)] rounded-md text-[#808080] text-sm focus:outline-none focus:ring-1 focus:ring-[#FAD406]"
-                    style={{
-                      fontFamily: 'Roboto'
-                    }}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Remember Me Row */}
-              <div className="flex justify-between items-center py-2">
-                <div className="flex items-center space-x-2">
-                  {/* Custom Switcher */}
-                  <div
-                    className="relative cursor-pointer w-10 h-5"
-                    onClick={() => setRememberMe(!rememberMe)}
-                  >
-                    <div
-                      className="absolute inset-0 rounded-full"
-                      style={{
-                        background: '#1C252A'
-                      }}
-                    />
-                    <div
-                      className="absolute transition-all duration-200 w-5 h-5 rounded-full shadow"
-                      style={{
-                        left: rememberMe ? '20px' : '0px',
-                        background: '#FFFFFF'
-                      }}
-                    />
-                  </div>
-                  <span
-                    className="text-white text-xs tracking-wide"
-                    style={{
-                      fontFamily: 'SF Pro Display'
-                    }}
-                  >
-                    Remember me
-                  </span>
-                </div>
-
-                <span
-                  className="text-[#FAD406] text-xs cursor-pointer tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display'
-                  }}
-                >
-                  Forgot password?
-                </span>
-              </div>
-
-              {/* Login Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-10 bg-[#FAD406] text-black font-bold text-sm rounded-full transition-all hover:bg-[#e8c406] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email Input */}
+            <div className="space-y-2">
+              <label
+                className="block text-white text-xs tracking-wide"
                 style={{
-                  fontFamily: 'Roboto'
+                  fontFamily: 'SF Pro Display',
+                  fontWeight: '400'
                 }}
               >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
-                    Signing in...
-                  </>
-                ) : (
-                  'Log in'
-                )}
-              </button>
+                Login
+              </label>
 
-              {/* Divider */}
-              <div className="relative my-6">
-                <div
-                  className="absolute inset-0 flex items-center"
-                >
-                  <div
-                    className="w-full border-t"
-                    style={{
-                      borderColor: 'rgba(229, 229, 229, 0.2)'
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Google Button */}
-              <button
-                type="button"
-                className="w-full h-10 bg-[#333333] text-white text-xs rounded-full flex items-center justify-center space-x-2 transition-all hover:bg-[#404040]"
-                style={{
-                  fontFamily: 'SF Pro Display'
-                }}
-              >
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{
-                    background: '#4285F4'
-                  }}
-                />
-                <span>Continue with Google</span>
-              </button>
-
-              {/* Sign Up Offer */}
-              <div className="flex justify-center items-center space-x-2 pt-4">
-                <span
-                  className="text-white text-xs tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display'
-                  }}
-                >
-                  Don't have an account?
-                </span>
-                <span
-                  onClick={() => router.push('/signup')}
-                  className="text-[#FAD406] text-xs cursor-pointer tracking-wide hover:underline"
-                  style={{
-                    fontFamily: 'SF Pro Display'
-                  }}
-                >
-                  Sign up
-                </span>
-              </div>
-            </form>
-          )}
-
-          {/* Sign Up Form */}
-          {isSignUp && (
-            <form onSubmit={handleSignUpSubmit} className="space-y-4">
-              {/* Sign up Label */}
-
-              {/* First Name Input */}
-              <div className="space-y-2">
-                <label
-                  className="block text-white text-xs tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display',
-                    fontWeight: '400'
-                  }}
-                >
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  name="firstname"
-                  value={signUpData.firstname}
-                  onChange={handleSignUpChange}
-                  placeholder="Enter your first name"
-                  className="w-full h-12 px-4 bg-[#181C1F] border border-[rgba(229,229,229,0.1)] rounded-md text-[#808080] text-sm focus:outline-none focus:ring-1 focus:ring-[#FAD406]"
-                  style={{
-                    fontFamily: 'Roboto'
-                  }}
-                  required
-                />
-              </div>
-
-              {/* Last Name Input */}
-              <div className="space-y-2">
-                <label
-                  className="block text-white text-xs tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display',
-                    fontWeight: '400'
-                  }}
-                >
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  name="lastname"
-                  value={signUpData.lastname}
-                  onChange={handleSignUpChange}
-                  placeholder="Enter your last name"
-                  className="w-full h-12 px-4 bg-[#181C1F] border border-[rgba(229,229,229,0.1)] rounded-md text-[#808080] text-sm focus:outline-none focus:ring-1 focus:ring-[#FAD406]"
-                  style={{
-                    fontFamily: 'Roboto'
-                  }}
-                  required
-                />
-              </div>
-
-              {/* Email Input */}
-              <div className="space-y-2">
-                <label
-                  className="block text-white text-xs tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display',
-                    fontWeight: '400'
-                  }}
-                >
-                  Email
-                </label>
+              <div className="relative">
                 <input
                   type="email"
                   name="email"
-                  value={signUpData.email}
-                  onChange={handleSignUpChange}
-                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Email or phone number"
                   className="w-full h-12 px-4 bg-[#181C1F] border border-[rgba(229,229,229,0.1)] rounded-md text-[#808080] text-sm focus:outline-none focus:ring-1 focus:ring-[#FAD406]"
                   style={{
                     fontFamily: 'Roboto'
@@ -597,24 +292,27 @@ export default function LoginForm({ defaultView = 'login' }) {
                   required
                 />
               </div>
+            </div>
 
-              {/* Password Input */}
-              <div className="space-y-2">
-                <label
-                  className="block text-white text-xs tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display',
-                    fontWeight: '400'
-                  }}
-                >
-                  Password
-                </label>
+            {/* Password Input */}
+            <div className="space-y-2">
+              <label
+                className="block text-white text-xs tracking-wide"
+                style={{
+                  fontFamily: 'SF Pro Display',
+                  fontWeight: '400'
+                }}
+              >
+                Password
+              </label>
+
+              <div className="relative">
                 <input
                   type="password"
                   name="password"
-                  value={signUpData.password}
-                  onChange={handleSignUpChange}
-                  placeholder="Create a password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter password"
                   className="w-full h-12 px-4 bg-[#181C1F] border border-[rgba(229,229,229,0.1)] rounded-md text-[#808080] text-sm focus:outline-none focus:ring-1 focus:ring-[#FAD406]"
                   style={{
                     fontFamily: 'Roboto'
@@ -622,127 +320,121 @@ export default function LoginForm({ defaultView = 'login' }) {
                   required
                 />
               </div>
+            </div>
 
-              {/* Confirm Password Input */}
-              <div className="space-y-2">
-                <label
-                  className="block text-white text-xs tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display',
-                    fontWeight: '400'
-                  }}
+            {/* Remember Me Row */}
+            <div className="flex justify-between items-center py-2">
+              <div className="flex items-center space-x-2">
+                {/* Custom Switcher */}
+                <div
+                  className="relative cursor-pointer w-10 h-5"
+                  onClick={() => setRememberMe(!rememberMe)}
                 >
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={signUpData.confirmPassword}
-                  onChange={handleSignUpChange}
-                  placeholder="Confirm your password"
-                  className="w-full h-12 px-4 bg-[#181C1F] border border-[rgba(229,229,229,0.1)] rounded-md text-[#808080] text-sm focus:outline-none focus:ring-1 focus:ring-[#FAD406]"
-                  style={{
-                    fontFamily: 'Roboto'
-                  }}
-                  required
-                />
-              </div>
-
-              {/* Organisation Name Input */}
-              <div className="space-y-2">
-                <label
-                  className="block text-white text-xs tracking-wide"
-                  style={{
-                    fontFamily: 'SF Pro Display',
-                    fontWeight: '400'
-                  }}
-                >
-                  Organisation Name
-                </label>
-                <input
-                  type="text"
-                  name="organisationName"
-                  value={signUpData.organisationName}
-                  onChange={handleSignUpChange}
-                  placeholder="Enter your organisation name"
-                  className="w-full h-12 px-4 bg-[#181C1F] border border-[rgba(229,229,229,0.1)] rounded-md text-[#808080] text-sm focus:outline-none focus:ring-1 focus:ring-[#FAD406]"
-                  style={{
-                    fontFamily: 'Roboto'
-                  }}
-                  required
-                />
-              </div>
-
-              {/* Sign Up Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-10 bg-[#FAD406] text-black font-bold text-sm rounded-full transition-all hover:bg-[#e8c406] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mt-6"
-                style={{
-                  fontFamily: 'Roboto'
-                }}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
-                    Creating account...
-                  </>
-                ) : (
-                  'Sign up'
-                )}
-              </button>
-
-              {/* Divider */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
                   <div
-                    className="w-full border-t"
+                    className="absolute inset-0 rounded-full"
                     style={{
-                      borderColor: 'rgba(229, 229, 229, 0.2)'
+                      background: '#1C252A'
+                    }}
+                  />
+                  <div
+                    className="absolute transition-all duration-200 w-5 h-5 rounded-full shadow"
+                    style={{
+                      left: rememberMe ? '20px' : '0px',
+                      background: '#FFFFFF'
                     }}
                   />
                 </div>
-              </div>
-
-              {/* Google Button */}
-              <button
-                type="button"
-                className="w-full h-10 bg-[#333333] text-white text-xs rounded-full flex items-center justify-center space-x-2 transition-all hover:bg-[#404040]"
-                style={{
-                  fontFamily: 'SF Pro Display'
-                }}
-              >
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{
-                    background: '#4285F4'
-                  }}
-                />
-                <span>Continue with Google</span>
-              </button>
-
-              {/* Login Offer */}
-              <div className="flex justify-center items-center space-x-2 pt-4">
                 <span
                   className="text-white text-xs tracking-wide"
                   style={{
                     fontFamily: 'SF Pro Display'
                   }}
                 >
-                  Already have an account?
-                </span>
-                <span
-                  onClick={() => router.push('/login')}
-                  className="text-[#FAD406] text-xs cursor-pointer tracking-wide hover:underline"
-                  style={{
-                    fontFamily: 'SF Pro Display'
-                  }}
-                >
-                  Log in
+                  Remember me
                 </span>
               </div>
-            </form>
-          )}
+
+              <span
+                className="text-[#FAD406] text-xs cursor-pointer tracking-wide"
+                style={{
+                  fontFamily: 'SF Pro Display'
+                }}
+              >
+                Forgot password?
+              </span>
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-10 bg-[#FAD406] text-black font-bold text-sm rounded-full transition-all hover:bg-[#e8c406] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              style={{
+                fontFamily: 'Roboto'
+              }}
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
+                  Signing in...
+                </>
+              ) : (
+                'Log in'
+              )}
+            </button>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div
+                className="absolute inset-0 flex items-center"
+              >
+                <div
+                  className="w-full border-t"
+                  style={{
+                    borderColor: 'rgba(229, 229, 229, 0.2)'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Google Button */}
+            <button
+              type="button"
+              className="w-full h-10 bg-[#333333] text-white text-xs rounded-full flex items-center justify-center space-x-2 transition-all hover:bg-[#404040]"
+              style={{
+                fontFamily: 'SF Pro Display'
+              }}
+            >
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{
+                  background: '#4285F4'
+                }}
+              />
+              <span>Continue with Google</span>
+            </button>
+
+            {/* Sign Up Offer */}
+            <div className="flex justify-center items-center space-x-2 pt-4">
+              <span
+                className="text-white text-xs tracking-wide"
+                style={{
+                  fontFamily: 'SF Pro Display'
+                }}
+              >
+                Don't have an account?
+              </span>
+              <span
+                onClick={() => router.push('/signup')}
+                className="text-[#FAD406] text-xs cursor-pointer tracking-wide hover:underline"
+                style={{
+                  fontFamily: 'SF Pro Display'
+                }}
+              >
+                Sign up
+              </span>
+            </div>
+          </form>
 
           {/* Footer */}
           <div className="flex justify-between items-center mt-8 text-[#D1D1D1] text-xs">

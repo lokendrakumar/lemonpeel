@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import WorkspaceNavbar from './WorkspaceNavbar';
-import useAuth from '../hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ConditionalNavbar() {
     const pathname = usePathname();

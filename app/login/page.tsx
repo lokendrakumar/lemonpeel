@@ -1,12 +1,25 @@
+"use client";
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import LoginForm from '@/features/auth/LoginForm';
 import ClientOnlyErrorBoundary from '@/components/ClientOnlyErrorBoundary';
 
-export const metadata = {
-  title: 'Login | LemonPeel',
-  description: 'Sign in to your LemonPeel account to access premium features and analytics.',
-};
-
 export default function LoginPage() {
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.push('/projects');
+    }
+  }, [isAuthenticated, loading, router]);
+
+  if (loading || isAuthenticated) {
+    return null; // or a loading spinner
+  }
+
   return (
     <ClientOnlyErrorBoundary>
       <LoginForm />
