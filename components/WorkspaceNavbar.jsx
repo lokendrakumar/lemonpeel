@@ -1,8 +1,8 @@
 'use client';
 
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { useState } from 'react';
-import useAuth from '../hooks/useAuth';
 
 export default function WorkspaceNavbar() {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
@@ -11,7 +11,7 @@ export default function WorkspaceNavbar() {
 
   return (
     <nav 
-      className="border-b border-gray-800 h-14"
+      className="border-b border-gray-800 h-14 sticky top-0 z-50"
       style={{
         background: 'linear-gradient(135deg, #2C2C2C 0%, #1A1A1A 100%)'
       }}
@@ -138,7 +138,7 @@ export default function WorkspaceNavbar() {
                             fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
                           }}
                         >
-                          {user?.name || 'Guest User'}
+                          {user ? `${user.firstname} ${user.lastname}` : 'User'}
                         </div>
                         <div className="text-gray-400 text-sm">{user?.email || 'No email'}</div>
                       </div>
@@ -170,20 +170,6 @@ export default function WorkspaceNavbar() {
               )}
             </div>
           </div>)}
-
-          {!isAuthenticated && (
-            <div className="flex items-center space-x-4">
-              <button 
-                className="flex items-center space-x-2 px-4 py-2 bg-[#FAD406] text-black text-sm font-semibold rounded-lg hover:bg-[#e8c005] transition-colors"
-                style={{
-                  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
-                }}
-                onClick={() => window.location.href = '/login'}
-              >
-                <span>login</span>
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </nav>
