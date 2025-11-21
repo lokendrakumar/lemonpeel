@@ -81,13 +81,13 @@ const mockProjects = [
 
 export default function ProjectDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const project = mockProjects.find(p => p.id === parseInt("1"));
+  const project = mockProjects.find(p => p.id === parseInt(params.id));
   const [activeTab, setActiveTab] = useState('Overview');
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
-  // if (!project) {
-  //   notFound();
-  // }
+  if (!project) {
+    notFound();
+  }
 
   return (
     <div 

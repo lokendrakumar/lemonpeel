@@ -34,7 +34,7 @@ export default function ProjectsClientPage() {
   const [imageUrl, setImageUrl] = useState<string>(""); // Changed from imagePreview
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState("");
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [projectsError, setProjectsError] = useState("");
   const hasFetched = useRef(false); // Add a ref to track fetch status
@@ -134,6 +134,24 @@ export default function ProjectsClientPage() {
     setProjectName("");
     setImageUrl(""); // Reset imageUrl
     setCreateError("");
+  };
+
+  const handleDeleteProject = async (projectId: number) => {
+    if (!confirm("Are you sure you want to delete this project?")) {
+      return;
+    }
+
+    try {
+      // In a real app, you would call the API to delete the project
+      // await projectsApi.delete(projectId);
+      
+      // For now, just remove it from the local state
+      setProjects(projects.filter((p: any) => p.id !== projectId));
+      setShowContextMenu(null);
+    } catch (error: any) {
+      console.error("Delete project error:", error);
+      alert(error.message || "Failed to delete project");
+    }
   };
 
   if (loadingProjects) {
